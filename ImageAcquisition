@@ -1,0 +1,32 @@
+import cv2
+import numpy as np
+import csv
+import pydicom as dicom
+import matplotlib.pyplot as plt
+
+#read img
+img = cv2.imread() #-----------------------------------URL of the normal image
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+#show img
+cv2.imshow('result normal',img)
+cv2.imshow('result gray',gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+#size & save image
+print(img.shape) 
+cv2.imwrite('output.jpg',gray) #save img
+
+#read DICOM
+ds=dicom.dcmread() #-----------------------------------URL of the DICOM image
+cv2.waitKey()
+cv2.destroyAllWindows()
+
+# plot the image using matplotlib
+plt.imshow(ds.pixel_array, cmap=plt.cm.gray)
+plt.show()
+#ds.pixel_array 
+
+columns_list = [ds]
+print (columns_list)
