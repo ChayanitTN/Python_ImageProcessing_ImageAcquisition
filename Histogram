@@ -1,0 +1,76 @@
+import cv2
+import numpy as np
+import pydicom as dicom
+import matplotlib.pyplot as plt
+
+#read img
+img = cv2.imread() #gonna be BGR not RGB || ---------------------------------------------------------------- URL of the normal image
+print(img.shape)
+####################################
+#resizing
+imgResize = cv2.resize(img,None, fx = 0.25, fy = 0.25)
+
+print(imgResize.shape)
+#cv2.imshow('input img',img)
+#cv2.imshow('input that got Resized',imgResize)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+#converting colour
+RGB = cv2.cvtColor(imgResize, cv2.COLOR_BGR2RGB)
+gray = cv2.cvtColor(imgResize, cv2.COLOR_BGR2GRAY)
+################################
+#show img
+#cv2.imshow('result img',imgResize)
+#cv2.imshow('result img that is converted into RGB',RGB)
+#cv2.imshow('result img that is converted into gray',gray)
+
+#plot RGB
+plt.title('result img')
+plt.imshow(imgResize)
+plt.show()
+
+plt.title('result img that is converted into RGB')
+plt.imshow(RGB)
+plt.show()
+
+#plot Gray
+plt.title('result img that is converted into gray')
+plt.imshow(gray, cmap=plt.cm.gray)
+plt.show()
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+#histogram time
+plt.title('(gray.ravel(), bins = 256)')
+plt.hist(gray.ravel(), bins = 256)
+# numpy.ravel() = change a 2D array or a multi-dimensional array into a contiguous flattened array
+plt.show()
+
+plt.title('(gray.ravel(), 256, [0,255])')
+plt.hist(gray.ravel(), 256, [0,255]) #maximum value, range from 0-255 
+# numpy.ravel() = change a 2D array or a multi-dimensional array into a contiguous flattened array
+plt.show()
+
+# evaluate the histogram
+values, base = np.histogram(gray, bins=256)
+#evaluate the cumulative
+cumulative = np.cumsum(values)
+# plot the cumulative function
+plt.plot(cumulative)
+plt.show()
+
+#read DICOM
+ds=dicom.dcmread() # --------------------------------------------------------------------------------------- URL of the DICOM image
+cv2.waitKey()
+cv2.destroyAllWindows()
+
+# plot the image using matplotlib
+plt.imshow(ds.pixel_array, cmap=plt.cm.gray)
+plt.show()
+#ds.pixel_array 
+
+#columns_list = [ds]
+#print (columns_list)
