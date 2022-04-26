@@ -1,0 +1,235 @@
+import numpy as np
+from PIL import Image, ImageDraw, ImageOps
+import matplotlib.pyplot as plt
+import matplotlib.image as pltimg
+
+realImg = Image.open() # ----------------------------------------------------- URL of the image
+# Load image:
+Imgload = realImg.load()
+
+############################ Point Operation
+def PlotPointOperation(img, mode, k):
+ #   k = int()
+    for x in range(img.width):
+        for y in range(img.height):
+            r, g, b = Imgload[x, y] 
+            
+            if mode == 'brightness':
+                r = int(r + k)
+                if r > 255:
+                    r == 255
+                elif r < 0:
+                    r == 0   
+
+                g = int(g + k)
+                if g > 255:
+                    g == 255
+                elif g < 0:
+                    g == 0 
+                    
+                b = int(b + k)
+                if b > 255:
+                    b == 255
+                elif b < 0:
+                    b == 0 
+            
+            elif mode == 'contrast':
+                r = int(r * k)
+                if r > 255:
+                    r == 255
+                elif r < 0:
+                    r == 0   
+
+                g = int(g * k)
+                if g > 255:
+                    g == 255
+                elif g < 0:
+                    g == 0 
+                    
+                b = int(b * k)
+                if b > 255:
+                    b == 255
+                elif b < 0:
+                    b == 0 
+                    
+            else:
+                r = int(255 - r)
+                g = int(255 - g)
+                b = int(255 - b)
+                
+            drawB.point((x, y), (r, g, b)) #Draws points (individual pixels) at the given coordinates. (xy, fill)
+
+    return img
+    
+B = int(input("BRIGHTNESS:"))
+print(B)
+C = int(input("CONTRAST:"))
+print(C)
+
+# Create image
+OperatedImg = Image.new("RGB", realImg.size)
+drawB = ImageDraw.Draw(OperatedImg)
+
+#plotting
+f = plt.figure(figsize =(10, 10))
+row, column = 1,4
+
+f.add_subplot(row, column, 1)
+plt.title('Real Image')
+plt.imshow(realImg)
+
+plt.tight_layout()
+
+f.add_subplot(row, column, 2)
+plt.title('BrightenUp Image')
+PlotPointOperation(OperatedImg, 'brightness', B)
+plt.imshow(OperatedImg)
+
+plt.tight_layout()
+
+f.add_subplot(row, column, 3)
+plt.title('Contrast Image')
+PlotPointOperation(OperatedImg, 'contrast', C)
+plt.imshow(OperatedImg)
+
+plt.tight_layout()
+
+f.add_subplot(row, column, 4)
+plt.title('Inversed Image')
+PlotPointOperation(OperatedImg, 'inverse', 0)
+plt.imshow(OperatedImg)
+
+plt.show()
+    
+def PlotHist(img):
+    GRAY = ImageOps.grayscale(img)
+    arr = np.array(GRAY)
+    
+    a = 0
+    hist = np.zeros((256), dtype=int)
+    while a < 256:
+        hist[a] = np.count_nonzero(arr==a)
+        a = a+1 
+    intensity=np.arange(0, 256, 1)
+    return plt.bar(intensity, hist, width = 1)
+    
+#plotting
+f = plt.figure(figsize =(15, 3))
+row, column = 1,4
+
+f.add_subplot(row, column, 1)
+plt.title('Real Image')
+PlotHist(realImg)
+
+plt.tight_layout()
+
+f.add_subplot(row, column, 2)
+plt.title('BrightenUp Image')
+brightness = PlotPointOperation(OperatedImg, 'brightness', B)
+PlotHist(brightness)
+
+plt.tight_layout()
+
+f.add_subplot(row, column, 3)
+plt.title('Contrast Image')
+contrast = PlotPointOperation(OperatedImg, 'contrast', C)
+PlotHist(contrast)
+
+plt.tight_layout()
+
+f.add_subplot(row, column, 4)
+plt.title('Inversed Image')
+inverse = PlotPointOperation(OperatedImg, 'inverse', 0)
+PlotHist(inverse)
+
+plt.show()
+
+############################ Threshold
+
+k = int(input("THRESHOLD:"))
+print(k)
+
+realImg = Image.open() # ----------------------------------------------------- URL of the image
+grayImg = ImageOps.grayscale(realImg)
+arr = np.array(grayImg) # Convert the input to an array.
+flat = arr.flatten()
+
+L = 0
+R = 0
+
+for i in range(len(flat)):
+    if flat[i] <= k:
+        L += 1
+    else:
+        R += 1
+      
+fig, ax = plt.subplots()
+
+ax.bar([0,1],[L,R],width=0.01)
+
+plt.show()
+
+a = 0
+
+histR = np.zeros((k), dtype=int)
+hist = np.zeros((256), dtype=int)
+intensity=np.arange(0, 256, 1)
+intensityR=np.arange(0, k, 1)
+
+while a < 256:
+
+    if a < k:
+        histR[a] = np.count_nonzero(arr==a)
+
+    else:
+        hist[a] = np.count_nonzero(arr==a)
+        
+    a = a+1 
+
+plt.bar(intensity, hist, width = 1)
+plt.bar(intensityR, histR, width = 1)
+plt.show()
+
+k = int(input("THRESHOLD:"))
+print(k)
+
+realImg = Image.open() # ----------------------------------------------------- URL of the image
+grayImg = ImageOps.grayscale(realImg)
+arr = np.array(grayImg) # Convert the input to an array.
+flat = arr.flatten()
+
+L = 0
+R = 0
+
+for i in range(len(flat)):
+    if flat[i] <= k:
+        L += 1
+    else:
+        R += 1
+    
+fig, ax = plt.subplots()
+
+ax.bar([2,3],[L,R],width=0.01)
+
+plt.show()
+
+a = 0
+
+histR = np.zeros((k), dtype=int)
+hist = np.zeros((256), dtype=int)
+intensity=np.arange(0, 256, 1)
+intensityR=np.arange(0, k, 1)
+
+while a < 256:
+
+    if a < k:
+        histR[a] = np.count_nonzero(arr==a)
+
+    else:
+        hist[a] = np.count_nonzero(arr==a)
+        
+    a = a+1 
+
+plt.bar(intensity, hist, width = 1)
+plt.bar(intensityR, histR, width = 1)
+plt.show()
