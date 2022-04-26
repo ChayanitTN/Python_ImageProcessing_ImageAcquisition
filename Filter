@@ -1,0 +1,111 @@
+import cv2
+import numpy as np
+import pydicom as dicom
+import matplotlib.pyplot as plt
+
+################ BOX
+image = cv2.imread( ,0) # ----------------------------------------------------- URL of the image
+height, width = image.shape
+
+cv2.imshow('b4',image)
+cv2.waitKey(0)
+cv2.destroyAllWindows() 
+
+def box_filter (img, b):
+    for y in range (1, width-1):
+        for x in range (1, height-1):
+            lyst = []
+            for z in range (b, 2):
+                for v in range (b, 2):
+                    loX, loY = x+z, y+v
+                    pixel = img[loX,loY]
+                    lyst.append(pixel)  
+                img[x,y] = sum(lyst) / len(lyst)
+    img_copy = img.copy()
+    return img_copy
+    
+b = int(input("blur (-3,-2,-1):"))
+
+Bfilter = box_filter(image, b)
+cv2.imshow('aft',Bfilter)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+################ GAU
+def Gaussian_filter (img, matrix_size, sigma):
+    shiftX = (matrix_size-1)//2 
+    shiftY = (matrix_size-1)//2
+    x1     = 2*np.pi*(sigma**2)
+    kernel = np.zeros((matrix_size, matrix_size))
+
+    for x in range(-shiftX, shiftX+1):
+        for y in range(-shiftY, shiftY+1):
+            expo = np.exp(-(x**2 + y**2)//(2* sigma**2))
+            kernel[x+shiftX, y+shiftY] = (expo/x1)  
+
+    totalWeight = sum(kernel) #output as 1x3 array
+    totalWeight = sum(totalWeight) #output as A number
+
+    for x in range (shiftX, height-shiftX):
+        for y in range (shiftY, width-shiftY):
+            lyst = []
+            wX, wY = 0,0
+            for s in range (-shiftX, shiftX+1):
+                for w in range (-shiftY, shiftY+1):
+                    loX, loY = s+x, w+y
+                    pixel  = img[loX,loY]
+                    weight = kernel[s+shiftX,w+shiftY]
+                    pixel_weight = weight * pixel
+                    lyst.append(pixel_weight)  
+                    if wX > shiftX+1 or wX > shiftY+1:
+                        pass
+                    else:
+                        wX = wX+1
+                        wY = wY+1
+                img[x,y] = sum(lyst) / totalWeight
+    return img
+
+G = Gaussian_filter(img, 5, 1)
+cv2.imshow('aft',G)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+################ MEX
+def Mexican_filter (img, matrix_size, sigma):
+    shiftX = (matrix_size-1)//2 
+    shiftY = (matrix_size-1)//2
+    
+    kernel = np.zeros((matrix_size, matrix_size))
+
+    for x in range(-shiftX, shiftX+1):
+        for y in range(-shiftY, shiftY+1):
+            expo = np.exp(-(x**2 + y**2)//(2* sigma**2))
+            x1     = np.pi*(sigma**4)
+            x2   = 1 - ((x**2 + y**2)//(2* sigma**2))
+            kernel[x+shiftX, y+shiftY] = -((expo*x2)/x1)  
+
+    totalWeight = sum(kernel) #output as 1x3 array
+    totalWeight = sum(totalWeight) #output as A number
+
+    for x in range (shiftX, height-shiftX):
+        for y in range (shiftY, width-shiftY):
+            lyst = []
+            for s in range (-shiftX, shiftX+1):
+                for w in range (-shiftY, shiftY+1):
+                    loX, loY = s+x, w+y
+                    pixel  = img[loX,loY]
+                    weight = kernel[s+shiftX,w+shiftY]
+                    pixel_weight = weight * pixel
+                    lyst.append(pixel_weight)  
+                img[x,y] = sum(lyst) / totalWeight
+    return (img)
+
+M = Mexican_filter (img, 5,4)
+cv2.imshow('aft',M)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+# ---- for comparison ---- #
+M = Mexican_filter (img, 5,2)
+cv2.imshow('aft',M)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
