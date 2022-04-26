@@ -1,0 +1,217 @@
+import numpy as np
+from PIL import Image, ImageDraw, ImageOps
+import matplotlib.pyplot as plt
+import matplotlib.image as pltimg
+#%matplotlib notebook
+
+############# Hist Equal
+realImg = Image.open( ) # ----------------------------------------------------- URL of the image
+GRAY = ImageOps.grayscale(realImg)
+arr = np.array(GRAY)
+
+def Get_Histogram(img):
+  
+    intensity=np.arange(0, 256, 1)
+    hist = np.zeros(256)
+
+    a = 0
+    while a < 256:
+        hist[a] = np.count_nonzero(arr==a)
+        a = a+1 
+        
+    return plt.bar(intensity, hist, width = 1)
+
+def Get_CummulativeHistogram(img):
+    
+    intensity=np.arange(0, 256, 1)
+    hist = np.zeros(256)
+    cummuHist = np.zeros(256)
+    
+    a = 0
+    while a < 256:
+        hist[a] = np.count_nonzero(arr==a)
+        a = a+1 
+        
+    k = 1
+    cummuHist[0] = hist[0]
+    while k < 256:
+        cummuHist[k] = hist[k] + cummuHist[k-1]
+        k = k+1
+        
+    return plt.bar(intensity, cummuHist, width = 1)
+    
+f = plt.figure(figsize =(20, 5))
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+Get_Histogram(arr)
+
+f.add_subplot(row, column, 2)
+Get_CummulativeHistogram(arr)
+
+plt.show()
+
+def Get_CDF(img):
+    
+    hist = np.zeros(256)
+    pdf = np.zeros(256)
+    cdf = np.zeros(256)
+    pixelVal=np.arange(0, 256, 1)
+    
+    width, height = img.size
+    TotalPixel = width * height
+    
+    b = 0
+    while b < 256:
+        hist[b] = np.count_nonzero(arr==b)
+        b = b+1
+    
+    a = 0
+    while a < 256:
+        pdf[a] = hist[a] / TotalPixel
+        a = a+1
+    
+    b = 1
+    cdf[0] = pdf[0]
+    while b < 256:
+        cdf[b] = pdf[b] + cdf[b-1]
+        b = b+1
+        
+    return cdf
+
+newIntensity = np.zeros(256)
+
+CDF = Get_CDF(realImg)
+Imax = arr.max()
+c = 0
+while c < 256:
+    newIntensity[c] = round(CDF[c] * Imax)
+    c = c+1
+
+for i in range(arr.shape[0]):
+    for j in range(arr.shape[1]):
+        arr[i,j] = newIntensity[arr[i,j]]
+        
+f = plt.figure()
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+plt.imshow(arr, cmap='gray')
+
+f.add_subplot(row, column, 2)
+plt.imshow(GRAY, cmap='gray')
+
+plt.show()
+
+f = plt.figure(figsize =(20, 5))
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+Get_Histogram(arr)
+
+f.add_subplot(row, column, 2)
+Get_CummulativeHistogram(arr)
+
+plt.show()
+
+############# Hist Spec
+Img_ref = Image.open( ) # ----------------------------------------------------- URL of the image1
+Img_cha = Image.open( ) # ----------------------------------------------------- URL of the image2
+
+GRAY_ref = ImageOps.grayscale(Img_ref)
+GRAY_cha = ImageOps.grayscale(Img_cha)
+
+arr_ref = np.array(GRAY_ref)
+arr_cha = np.array(GRAY_cha)
+
+arr_cha_new = np.array(GRAY_cha)
+
+def Get_CDF(img):
+    
+    GRAY = ImageOps.grayscale(img)
+    arr = np.array(GRAY)
+    
+    hist = np.zeros(256)
+    pdf = np.zeros(256)
+    cdf = np.zeros(256)
+    pixelVal=np.arange(0, 256, 1)
+    
+    width, height = img.size
+    TotalPixel = width * height
+    
+    b = 0
+    while b < 256:
+        hist[b] = np.count_nonzero(arr==b)
+        b = b+1
+    
+    a = 0
+    while a < 256:
+        pdf[a] = hist[a] / TotalPixel
+        a = a+1
+    
+    b = 1
+    cdf[0] = pdf[0]
+    while b < 256:
+        cdf[b] = pdf[b] + cdf[b-1]
+        b = b+1
+        
+    return cdf
+    
+cdf_ref = Get_CDF(Img_ref)
+cdf_cha = Get_CDF(Img_cha)
+newIntensity = np.zeros(256)
+
+k = 0
+a = 0
+for k in range (256):
+    lyst = []
+    for a in range (256):
+        diff = abs(cdf_cha[k] - cdf_ref[a])
+        lyst.append(diff)
+    minDifference = min(lyst)
+    index_MinDifference = lyst.index(minDifference)
+    newIntensity[k] = index_MinDifference
+
+for i in range(arr_cha.shape[0]):
+    for j in range(arr_cha.shape[1]):
+        arr_cha_new[i,j] = newIntensity[arr_cha_new[i,j]]
+        
+f = plt.figure(figsize =(10, 10))
+row, column = 1,3
+
+f.add_subplot(row, column, 1)
+plt.imshow(arr_cha, cmap = 'gray')
+
+f.add_subplot(row, column, 2)
+plt.imshow(arr_cha_new, cmap = 'gray')
+
+f.add_subplot(row, column, 3)
+plt.imshow(arr_ref, cmap = 'gray')
+
+plt.show()
+
+def Get_Histogram(array):
+  
+    intensity=np.arange(0, 256, 1)
+    hist = np.zeros(256)
+
+    a = 0
+    while a < 256:
+        hist[a] = np.count_nonzero(array==a)
+        a = a+1 
+        
+    return plt.bar(intensity, hist, width = 1)
+    
+f = plt.figure(figsize =(20, 5))
+row, column = 1,3
+
+f.add_subplot(row, column, 1)
+Get_Histogram(arr_cha)
+
+f.add_subplot(row, column, 2)
+Get_Histogram(arr_cha_new)
+
+f.add_subplot(row, column, 3)
+Get_Histogram(arr_ref)
+
+plt.show()
