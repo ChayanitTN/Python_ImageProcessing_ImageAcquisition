@@ -1,0 +1,118 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+#%matplotlib notebook
+
+image = cv2.imread( ,0) # ----------------------------------------------------- URL of the image
+
+######################################################## EROSION
+def threshold(img, k):
+    height, width = img.shape
+    final_img = np.zeros(img.shape)
+
+    for x in range(width):
+        for y in range(height):
+            pixel = img[x,y]
+         
+            if pixel > k:
+                pixel = 1
+            else:
+                pixel = 0  
+                
+            final_img[x,y] = pixel
+    return final_img
+    
+def erosion(img):
+    height, width = img.shape
+    final_img = np.zeros(img.shape)
+    
+    kernel = np.array([[1, 1, 1],[0, 1, 1],[0, 0, 1]])
+    
+    matrix_size = len(kernel)
+    
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+        
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lyst = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    original = img[loX,loY]
+
+                    structed_kernel = kernel[s+shiftX,w+shiftY]
+                    
+                    if structed_kernel == 0:
+                        pass
+                    else:
+                        if structed_kernel == original:
+                            lyst.append(1)
+                        else:
+                            pass
+
+            if len(lyst) == 0:
+                final_img[x,y] = 0
+            else:
+                final_img[x,y] = 1
+
+                
+    return final_img
+    
+binary = threshold(image, 127)
+plt.imshow (erosion(binary), cmap = 'gray')
+plt.show()
+
+######################################################## DILATION
+def dilation(img):
+    height, width = img.shape
+    final_img = np.zeros(img.shape)
+    
+    kernel = np.array([[1, 1, 1],[0, 1, 1],[0, 0, 1]])
+    
+    matrix_size = len(kernel)
+    
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+        
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lyst = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    original = img[loX,loY]
+
+                    structed_kernel = kernel[s+shiftX,w+shiftY]
+                    
+                    if structed_kernel == 0:
+                        pass
+                    else:
+                        if structed_kernel == original:
+                            lyst.append(1)
+                        else:
+                            pass
+
+            if len(lyst) == np.count_nonzero(kernel == 1):
+                final_img[x,y] = 1
+            else:
+                final_img[x,y] = 0
+
+                
+    return final_img
+    
+plt.imshow (dilation(binary), cmap = 'gray')
+plt.show()    
+   
+######################################################## CLOSE
+dilate = dilation(binary)
+closing = erosion(dilate)
+plt.imshow (closing, cmap = 'gray')
+plt.show()
+
+######################################################## OPEN
+ero = erosion(binary)
+opening = dilation(ero)
+plt.imshow (opening, cmap = 'gray')
+plt.show()
