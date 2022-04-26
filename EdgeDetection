@@ -1,0 +1,145 @@
+import cv2
+import numpy as np
+import pydicom as dicom
+import matplotlib.pyplot as plt
+from statistics import median
+import math
+
+#%matplotlib notebook
+
+image = cv2.imread( ,0) # ----------------------------------------------------- URL of the image
+
+############## Prewitt
+def prewitt(img):
+    kernelX = np.array([[-1, 0, 1],[-1, 0, 1],[-1, 0, 1]])
+    kernelY = np.array([[-1, -1, -1],[0, 0, 0],[1, 1, 1]])
+    
+    height, width = img.shape
+    
+    matrix_size = len(kernelX)
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+    
+    X = np.zeros((matrix_size, matrix_size), dtype=int)
+    Y = np.zeros((matrix_size, matrix_size), dtype=int)
+    
+    final_img = np.zeros(img.shape)
+
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lystX = []
+            lystY = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    pixel = img[loX,loY]
+'''
+                    weightX = kernelX[s+shiftX,w+shiftY]
+                    pixel_weightX = weightX * pixel
+                    lystX.append(pixel_weightX)
+'''
+                    weightY = kernelY[s+shiftX,w+shiftY]
+                    pixel_weightY = weightY * pixel
+                    lystY.append(pixel_weightY)
+
+            #new_x = sum(lystX) / 6
+            new_y = sum(lystY) / 6
+            new_val = math.sqrt(new_x**2 + new_y**2)
+            final_img[x,y] = new_val
+                
+    return final_img
+    
+plt.imshow (prewitt(image), cmap = 'gray')
+plt.show()
+############## Sobel
+def sobel(img):
+    kernelX = np.array([[-1, 0, 1],[-2, 0, 2],[-1, 0, 1]])
+    kernelY = np.array([[-1, -2, -1],[0, 0, 0],[1, 2, 1]])
+    
+    height, width = img.shape
+    
+    matrix_size = len(kernelX)
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+    
+    X = np.zeros((matrix_size, matrix_size), dtype=int)
+    Y = np.zeros((matrix_size, matrix_size), dtype=int)
+    
+    final_img = np.zeros(img.shape)
+
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lystX = []
+            lystY = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    pixel = img[loX,loY]
+
+                    weightX = kernelX[s+shiftX,w+shiftY]
+                    pixel_weightX = weightX * pixel 
+                    lystX.append(pixel_weightX)
+
+                    weightY = kernelY[s+shiftX,w+shiftY]
+                    pixel_weightY = weightY * pixel
+                    lystY.append(pixel_weightY)
+
+            new_x = sum(lystX) / 8
+            new_y = sum(lystY) / 8
+            new_val = math.sqrt(new_x**2 + new_y**2)
+            final_img[x,y] = new_val
+                
+    return final_img
+    
+
+plt.imshow (sobel(image), cmap = 'gray')
+plt.show()
+############## Roberts
+def roberts(img):
+    kernelX = np.array([[0, 0, 1],[0, -1, 0],[0, 0, 0]])
+    kernelY = np.array([[-1, 0, 0],[0, 1, 0],[0, 0, 0]])
+    
+    height, width = img.shape
+
+    matrix_size = len(kernelX)
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+    
+
+    
+    final_img = np.zeros(img.shape)
+
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lystX = []
+            lystY = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    pixel = img[loX,loY]
+
+                    weightX = kernelX[s+shiftX,w+shiftY]
+                    pixel_weightX = weightX * pixel / 2
+                    lystX.append(pixel_weightX)
+
+                    weightY = kernelY[s+shiftX,w+shiftY]
+                    pixel_weightY = weightY * pixel / 2
+                    lystY.append(pixel_weightY)
+
+            new_x = sum(lystX)
+            new_y = sum(lystY)
+            new_val = math.sqrt(new_x**2 + new_y**2)
+            final_img[x,y] = new_val
+                
+    return final_img
+    
+f = plt.figure()
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+plt.title('Real Image')
+plt.imshow (image, cmap = 'gray')
+
+f.add_subplot(row, column, 2)
+plt.imshow (roberts(image), cmap = 'gray')
+plt.show()
