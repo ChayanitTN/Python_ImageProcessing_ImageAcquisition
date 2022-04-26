@@ -1,0 +1,72 @@
+import cv2
+import numpy as np
+import pydicom as dicom
+import matplotlib.pyplot as plt
+from statistics import median
+
+# 2 variables for comparison
+imageB4 = cv2.imread( ,0) # ----------------------------------------------------- URL of the image
+imageAft = cv2.imread( ,0) # ----------------------------------------------------- URL of the image
+
+############ MEDIAN
+def median_filter (img, matrix_size):
+    height, width = img.shape
+    shiftX = (matrix_size-1)//2 
+    shiftY = (matrix_size-1)//2
+
+    for y in range (shiftX, height-shiftX):
+        for x in range (shiftY, width-shiftY):
+            lyst = []
+            for z in range (-shiftX, shiftX+1):
+                for v in range (-shiftY, shiftY+1):
+                    loX, loY = x+z, y+v
+                    pixel = img[loX,loY]
+                    lyst.append(pixel)  
+            maxDifference = median(lyst)
+            img[x,y] = maxDifference
+    return img
+
+f = plt.figure(figsize =(10, 5))
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+plt.imshow (imageB4, cmap = 'gray')
+
+f.add_subplot(row, column, 2)
+plt.imshow (median_filter(imageAft,9), cmap = 'gray')
+
+plt.show()
+
+############ WEIGHT
+def median_filter (img, kernel):
+    height, width = img.shape
+    matrix_size = len(kernel)
+    shiftX = (matrix_size-1)//2 
+    shiftY = (matrix_size-1)//2
+        
+    for y in range (shiftX, height-shiftX):
+        for x in range (shiftY, width-shiftY):
+            lyst = []
+            for z in range (-shiftX, shiftX+1):
+                for v in range (-shiftY, shiftY+1):
+                    loX, loY = x+z, y+v
+                    pixel = img[loX,loY]
+                    weight = kernel[z+shiftX,v+shiftY]
+                    for l in range (weight):
+                        lyst.append(pixel)  
+            maxDifference = median(lyst)
+            img[x,y] = maxDifference
+    return img
+    
+kernel = np.array([[2, 2, 7],[1,9,1],[1, 1, 1]])
+
+f = plt.figure(figsize =(10, 5))
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+plt.imshow (imageB4, cmap = 'gray')
+
+f.add_subplot(row, column, 2)
+plt.imshow (median_filter(imageAft,kernel), cmap = 'gray')
+
+plt.show()
