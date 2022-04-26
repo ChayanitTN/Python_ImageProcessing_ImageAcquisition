@@ -1,0 +1,136 @@
+import numpy as np
+from PIL import Image, ImageDraw, ImageOps
+import matplotlib.pyplot as plt
+import matplotlib.image as pltimg
+
+realImg = Image.open( ) # ----------------------------------------------------- URL of the image
+Imgload = realImg.load()
+OperatedImg = Image.new("RGB", realImg.size)
+draw = ImageDraw.Draw(OperatedImg)
+
+plt.imshow(OperatedImg)
+plt.show()
+
+def PlotHist(img):
+    GRAY = ImageOps.grayscale(img)
+    arr = np.array(GRAY)
+    a = 0
+    hist = np.zeros((256), dtype=int)
+    while a < 256:
+        hist[a] = np.count_nonzero(arr==a)
+        a = a+1 
+    intensity=np.arange(0, 256, 1)
+    return plt.bar(intensity, hist, width = 1)
+    
+def AdjContrast(img, Alow, Ahigh):
+    if Alow == Ahigh:
+        print('error')
+    else:
+        for x in range(img.width):
+            for y in range(img.height):
+                r, g, b = Imgload[x, y]
+                r = (r - Alow) * (255 / ((Ahigh) - (Alow)))
+                if r > 255:
+                    r == 255
+                elif r < 0:
+                    r == 0        
+                R = round(r)
+                g = (g - Alow) * (255 / ((Ahigh) - (Alow)))
+                if g > 255:
+                    g == 255
+                elif g < 0:
+                    g == 0            
+                G = round(g)         
+                b = (b - Alow) * (255 / ((Ahigh) - (Alow)))
+                if b > 255:
+                    b == 255
+                elif b < 0:
+                    b == 0  
+                B = round(b)
+                draw.point((x, y), (R, G, B))
+    return img
+    
+    Alow = int(input("minimum: "))
+Ahigh = int(input("maximum: "))
+
+f = plt.figure(figsize =(6, 6))
+row, column = 1,2
+
+f.add_subplot(row, column, 1)
+plt.title('Real Image')
+plt.imshow(realImg)
+
+f.add_subplot(row, column, 2)
+plt.title('Contrast Image')
+AdjContrast(OperatedImg, Alow, Ahigh)
+plt.imshow(OperatedImg)
+
+plt.show()
+
+PlotHist(realImg)
+plt.show()
+
+PlotHist(OperatedImg)
+plt.show()
+
+width, height = realImg.size
+TotalPixel = width * height
+
+def ModifAdjContrast(img, Qlow, Qhigh):
+    
+    Alow = round(TotalPixel * Qlow)   
+    Ahigh = round(TotalPixel - (TotalPixel * Qhigh))
+    
+    GRAY = ImageOps.grayscale(realImg)
+    arr = np.array(GRAY)
+    a = 0
+    hist = np.zeros((256), dtype=int)
+    while a < 256:
+        hist[a] = np.count_nonzero(arr==a)
+        a = a+1            
+
+    LOW = 0
+    HIGH = 0
+    k = 1
+    cummuHist = np.zeros((256), dtype = int)
+    cummuHist[0] = hist[0]
+    while k < 256:
+        cummuHist[k] = hist[k] + cummuHist[k-1]
+        if cummuHist[k] < Alow:
+            LOW = k
+        elif cummuHist[k] < Ahigh:
+            HIGH = k
+        k = k+1
+
+    for x in range(img.width):
+                for y in range(img.height):
+
+                    r, g, b = Imgload[x, y]
+                    r = (r - LOW) * (255 / ((HIGH) - (LOW)))
+                    if r > 255:
+                        r == 255
+                    elif r < 0:
+                        r == 0        
+                    R = round(r)
+                    g = (g - LOW) * (255 / ((HIGH) - (LOW)))
+                    if g > 255:
+                        g == 255
+                    elif g < 0:
+                        g == 0            
+                    G = round(g)         
+                    b = (b - LOW) * (255 / ((HIGH) - (LOW)))
+                    if b > 255:
+                        b == 255
+                    elif b < 0:
+                        b == 0  
+                    B = round(b)
+                    draw.point((x, y), (R, G, B))
+    return img
+    
+ModifAdjContrast(OperatedImg, 0.25, 0.25)
+plt.imshow(OperatedImg)
+
+plt.show()
+
+PlotHist(OperatedImg)
+plt.show()
