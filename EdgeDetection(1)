@@ -1,0 +1,324 @@
+import cv2
+import numpy as np
+import pydicom as dicom
+import matplotlib.pyplot as plt
+from statistics import median
+import math
+
+image = cv2.imread( ,0) # ----------------------------------------------------- URL of the image
+
+########## Compass filter
+def compass(img):
+    kernel0 = np.array([[-1, 0, 1],[-2, 0, 2],[-1, 0, 1]])
+    kernel1 = np.array([[-2, -1, 0],[-1, 0, 1],[0, 1, 2]])
+    kernel2 = np.array([[-1, -2, -1],[0, 0, 0],[1, 2, 1]])
+    kernel3 = np.array([[0, -1, -2],[1, 0, -1],[2, 1, 0]])
+    kernel_0 = -kernel0
+    kernel_1 = -kernel1
+    kernel_2 = -kernel2
+    kernel_3 = -kernel3
+    
+    height, width = img.shape
+    
+    matrix_size = len(kernel0)
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+        
+    final_img = np.zeros(img.shape)
+
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lyst = []
+            
+            lyst0 = []
+            lyst1 = []
+            lyst2 = []
+            lyst3 = []
+            lyst_0 = []
+            lyst_1 = []
+            lyst_2 = []
+            lyst_3 = []
+            
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    pixel = img[loX,loY]
+                    
+                    weight0 = kernel0[s+shiftX,w+shiftY]
+                    pixel_weight0 = weight0 * pixel
+                    lyst0.append(pixel_weight0)
+                    
+                    weight1 = kernel1[s+shiftX,w+shiftY]
+                    pixel_weight1 = weight1 * pixel
+                    lyst1.append(pixel_weight1)
+                    
+                    weight2 = kernel2[s+shiftX,w+shiftY]
+                    pixel_weight2 = weight2 * pixel
+                    lyst2.append(pixel_weight2)
+                    
+                    weight3 = kernel3[s+shiftX,w+shiftY]
+                    pixel_weight3 = weight3 * pixel
+                    lyst3.append(pixel_weight3)
+                    
+                    weight_0 = kernel_0[s+shiftX,w+shiftY]
+                    pixel_weight_0 = weight_0 * pixel
+                    lyst_0.append(pixel_weight_0)
+                    
+                    weight_1 = kernel_1[s+shiftX,w+shiftY]
+                    pixel_weight_1 = weight_1 * pixel
+                    lyst_1.append(pixel_weight_1)
+                    
+                    weight_2 = kernel_2[s+shiftX,w+shiftY]
+                    pixel_weight_2 = weight_2 * pixel
+                    lyst_2.append(pixel_weight_2) 
+                    
+                    weight_3 = kernel_3[s+shiftX,w+shiftY]
+                    pixel_weight_3 = weight_3 * pixel
+                    lyst_3.append(pixel_weight_3)
+   
+            new0 = sum(lyst0)
+            lyst.append(new0)
+        
+            new1 = sum(lyst1)
+            lyst.append(new1)
+            
+            new2 = sum(lyst2)
+            lyst.append(new2)
+            
+            new3 = sum(lyst3)
+            lyst.append(new3)
+            
+            new_0 = sum(lyst_0)
+            lyst.append(new_0)
+            
+            new_1 = sum(lyst_1)
+            lyst.append(new_1)
+            
+            new_2 = sum(lyst_2)
+            lyst.append(new_2)
+            
+            new_3 = sum(lyst_3)
+            lyst.append(new_3)
+            
+            new = max(lyst) / 9
+            final_img[x,y] = new
+                
+    return final_img
+    
+plt.imshow (compass(image), cmap = 'gray')
+plt.show()
+
+########## Canny operator
+def Gaussian_filter (img, matrix_size, sigma):
+    height, width = img.shape
+    final_img = np.zeros(img.shape)
+    shiftX = (matrix_size-1)//2 
+    shiftY = (matrix_size-1)//2
+    x1     = 2*np.pi*(sigma**2)
+    kernel = np.zeros((matrix_size, matrix_size))
+
+    for x in range(-shiftX, shiftX+1):
+        for y in range(-shiftY, shiftY+1):
+            expo = np.exp(-(x**2 + y**2)//(2* sigma**2))
+            kernel[x+shiftX, y+shiftY] = (expo/x1)  
+
+    totalWeight = sum(kernel) #output as 1x3 array
+    totalWeight = sum(totalWeight) #output as A number
+
+    for x in range (shiftX, height-shiftX):
+        for y in range (shiftY, width-shiftY):
+            lyst = []
+            wX, wY = 0,0
+            for s in range (-shiftX, shiftX+1):
+                for w in range (-shiftY, shiftY+1):
+                    loX, loY = s+x, w+y
+                    pixel  = img[loX,loY]
+                    weight = kernel[s+shiftX,w+shiftY]
+                    pixel_weight = weight * pixel
+                    lyst.append(pixel_weight)  
+                    if wX > shiftX+1 or wX > shiftY+1:
+                        pass
+                    else:
+                        wX = wX+1
+                        wY = wY+1
+                final_img[x,y] = sum(lyst) / totalWeight
+    return final_img
+    
+def sobel(img):
+    kernelX = np.array([[-1, 0, 1],[-2, 0, 2],[-1, 0, 1]])
+    kernelY = np.array([[-1, -2, -1],[0, 0, 0],[1, 2, 1]])
+    
+    height, width = img.shape
+    
+    matrix_size = len(kernelX)
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+
+    final_img = np.zeros(img.shape)
+
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lystX = []
+            lystY = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    pixel = img[loX,loY]
+
+                    weightX = kernelX[s+shiftX,w+shiftY]
+                    pixel_weightX = weightX * pixel 
+                    lystX.append(pixel_weightX)
+
+                    weightY = kernelY[s+shiftX,w+shiftY]
+                    pixel_weightY = weightY * pixel
+                    lystY.append(pixel_weightY)
+
+            new_x = sum(lystX) / 8
+            new_y = sum(lystY) / 8
+            new_val = math.sqrt(new_x**2 + new_y**2)
+            final_img[x,y] = new_val
+                
+    return final_img
+    
+def threshold(img, k):
+    height, width = img.shape
+    final_img = np.zeros(img.shape)
+
+    for x in range(width):
+        for y in range(height):
+            
+            pixel = img[x,y]
+         
+            if pixel > k:
+                pixel = 255
+            else:
+                pixel = 0        
+            
+            final_img[x,y] = pixel
+        
+    return final_img
+    
+def canny(img):
+    G = Gaussian_filter (image, 3, 5)
+    G_S = sobel(G)
+    G_S_C = compass(G_S)
+    G_S_C_T = threshold(G_S_C, 25)
+    return G_S_C_T
+    
+plt.imshow (canny(image), cmap = 'gray')
+plt.show()
+
+########## Hough Transform
+def hough(im, ntx=460, mry=360):
+    pim = im.load()
+    nimx, mimy = im.size
+    mry = int(mry/2)*2     
+    him = Image.new("L", (ntx, mry), 255)
+    phim = him.load()
+ 
+    rmax = hypot(nimx, mimy)
+    dr = rmax / (mry/2)
+    dth = pi / ntx
+ 
+    for jx in range(nimx):
+        for iy in range(mimy):
+            col = pim[jx, iy]
+            if col == 255: continue
+            for jtx in range(ntx):
+                th = dth * jtx
+                r = jx*cos(th) + iy*sin(th)
+                iry = mry/2 + int(r/dr+0.5)
+                phim[jtx, iry] -= 1
+    return him
+ 
+plt.imshow(hough(im))
+plt.show()
+
+########## Laplace filter
+def laplace(img):
+    kernelX = np.array([[0, -1, 0],[-1, 4, -1],[0, -1, 0]])
+    kernelY = np.array([[-1, -1, -1],[-1, 8, -1],[-1, -1, -1]])
+    
+    height, width = img.shape
+    
+    matrix_size = len(kernelX)
+    shiftX = (matrix_size)//2 
+    shiftY = (matrix_size)//2
+    
+    X = np.zeros((matrix_size, matrix_size), dtype=int)
+    Y = np.zeros((matrix_size, matrix_size), dtype=int)
+    
+    final_img = np.zeros(img.shape)
+
+    for x in range(shiftX, height-shiftX):
+        for y in range(shiftY, width-shiftY):
+            lystX = []
+            lystY = []
+            for s in range(-shiftX,shiftX+1):
+                for w in range(-shiftY,shiftY+1):
+                    loX, loY = s+x,w+y
+                    pixel = img[loX,loY]
+
+                    weightX = kernelX[s+shiftX,w+shiftY]
+                    pixel_weightX = weightX * pixel 
+                    lystX.append(pixel_weightX)
+
+                    weightY = kernelY[s+shiftX,w+shiftY]
+                    pixel_weightY = weightY * pixel
+                    lystY.append(pixel_weightY)
+
+            new_x = sum(lystX) / 8
+            new_y = sum(lystY) / 8
+            new_val = math.sqrt(new_x**2 + new_y**2)
+            final_img[x,y] = new_val
+                
+    return final_img
+    
+plt.imshow (laplace(image), cmap = 'gray')
+plt.show()
+
+########## Unsharp mask technique
+def blurGau (img, sigma):
+
+    final_img = np.zeros(img.shape)
+    matrix_size = 3
+    
+    height, width = img.shape
+
+    shiftX = (matrix_size-1)//2 
+    shiftY = (matrix_size-1)//2
+    x1     = 2*np.pi*(sigma**2)
+    kernel = np.zeros((matrix_size, matrix_size))
+
+    for x in range(-shiftX, shiftX+1):
+        for y in range(-shiftY, shiftY+1):
+            expo = np.exp(-(x**2 + y**2)//(2* sigma**2))
+            kernel[x+shiftX, y+shiftY] = (expo/x1)  
+
+    totalWeight = sum(kernel) #output as 1x3 array
+    totalWeight = sum(totalWeight) #output as A number
+
+    for x in range (shiftX, height-shiftX):
+        for y in range (shiftY, width-shiftY):
+            lyst = []
+            wX, wY = 0,0
+            for s in range (-shiftX, shiftX+1):
+                for w in range (-shiftY, shiftY+1):
+                    loX, loY = s+x, w+y
+                    pixel  = img[loX,loY]
+                    weight = kernel[s+shiftX,w+shiftY]
+                    pixel_weight = weight * pixel
+                    lyst.append(pixel_weight)  
+
+                    final_img[x,y] = sum(lyst) / totalWeight
+                    final_img[x,y] = img[loX,loY] + (img[loX,loY] - final_img[x,y]) * sigma
+                
+    return final_img
+    
+G = blurGau(image, 5)
+plt.imshow (G, cmap = 'gray')
+plt.show()
+
+G = blurGau(image, 35)
+plt.imshow (G, cmap = 'gray')
+plt.show()
